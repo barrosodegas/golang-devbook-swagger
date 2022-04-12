@@ -26,7 +26,6 @@
 - Swagger 2.0
 
 ## How to run
-- API with Swagger: swag init and go run main.go
 - API and Webapp: go run main.go
 
 ## Environment
