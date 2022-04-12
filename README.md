@@ -8,8 +8,13 @@
 - The purpose of this code is to pass on knowledge so that other developers can learn a little about this very interesting language.
 
 ## This application is divided into two modules.
-- API (CRUD, token and authentication.)
+- API (CRUD, token and authentication.) 
 - Webapp (Web pages, Go templates, caching and API integration.)
+
+## URLs
+- [Webapp](http://localhost:3000)
+- [Root API](http://localhost:5000)
+- [Swagger Documentation](http://localhost:5000/swagger/index.html)
 
 ## Database
 - Mysql
@@ -19,3 +24,11 @@
 
 ## API documentation
 - Swagger 2.0
+
+## How to run
+- API with Swagger: swag init and go run main.go
+- API and Webapp: go run main.go
+
+## Environment
+- Golang 1.18 or latest
+- [Go Swagger](https://github.com/swaggo/swag)
