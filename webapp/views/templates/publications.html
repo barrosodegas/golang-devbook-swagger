@@ -1,0 +1,42 @@
+
+{{ define "publication-likes" }}
+    <i class="fas fa-heart like-publication" style="cursor: pointer;"></i>
+    <span>{{ . }}</span>
+{{ end }}
+
+{{ define "publication-edit" }}
+    <a href="/publications/{{ . }}/edit" style="text-decoration: none;">
+        <i class="fa-solid fa-pen-to-square"></i>
+    </a>
+{{ end }}
+
+{{ define "publication-delete" }}
+    <i class="fa-solid fa-trash-can text-danger delete-publication" style="cursor: pointer;"></i>
+{{ end }}
+
+{{ define "publication-header" }}
+    <h1 class="display-4"> {{ .Title }} </h1>
+    <p class="lead">{{ .Content }}</p>
+    <a href="/users/{{ .AuthorId }}">{{ .AuthorNick }} - {{ .CreatedAt.Format "02/01/2006" }}</a>
+    <hr class="my-4">
+{{ end }}
+
+{{ define "publication-with-permissions" }}
+    <div class="jumbotron" data-publication-id="{{ .ID }}">
+        {{ template "publication-header" . }}
+        <p>
+            {{ template "publication-likes" .Likes }}
+            {{ template "publication-edit" .ID }}
+            {{ template "publication-delete" .ID }}
+        </p>
+    </div>
+{{ end }}
+
+{{ define "publication-without-permissions" }}
+    <div class="jumbotron" data-publication-id="{{ .ID }}">
+        {{ template "publication-header" . }}
+        <p>
+            {{ template "publication-likes" .Likes }}
+        </p>
+    </div>
+{{ end }}

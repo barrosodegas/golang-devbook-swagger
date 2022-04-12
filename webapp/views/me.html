@@ -1,0 +1,72 @@
+<html lang="en">
+    <Head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DevBook - {{ .User.Name }}</title>
+
+        <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css">
+    </Head>
+    <body>
+        {{ template "header" }}
+        <div class="container-fluid">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Meu perfil</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {{ .User.Name }} - {{ .User.Nick }} - Membro desde: {{ .User.CreatedAt.Format "02/01/2006" }}
+                            </h6>
+                            <p class="card-text">
+                                <a href="#" data-toggle="modal" data-target="#modal-followers">Seguidores: {{ len .User.Followers }}</a>
+                            </p>
+                            <p class="card-text">
+                                <a href="#" data-toggle="modal" data-target="#modal-following">Seguindo: {{ len .User.Following }}</a>
+                            </p>
+                            <div class="row">
+                                <div class="col-12">
+                                    <a href="/me/edit" class="card-link">
+                                        <button class="btn btn-info">Editar dados</button>
+                                    </a>
+                                    <a href="/me/update-password" class="card-link">
+                                        <button class="btn btn-info">Atualizar senha</button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Publicações</h5>
+                            <p>
+                                {{ range .User.Publications }}
+                                    {{ template "publication-with-permissions" . }}
+                                {{ else }}
+                                    <p class="text-muted tex-center">Nehuma publicação encontrada.</p>    
+                                {{ end }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <br/>
+            <a id="delete-user" class="card-link" href="#">
+                <button class="btn btn-info">Exclir conta permanentemente</button>
+            </a>
+        </div>
+
+        {{ template "modal-followers" .User }}
+        {{ template "modal-following" .User }}
+        {{ template "footer" }}
+        {{ template "scripts" }}
+
+        <script src="/assets/js/publications.js"></script>
+        <script src="/assets/js/delete-publication.js"></script>
+        <script src="/assets/js/user.js"></script>
+    </body>
+</html>

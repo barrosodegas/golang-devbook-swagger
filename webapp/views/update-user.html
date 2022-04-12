@@ -1,0 +1,43 @@
+<html lang="en">
+    <Head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DevBook - Atualizar dados</title>
+
+        <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css">
+    </Head>
+    <body>
+        {{ template "header" }}
+
+        <div class="container-fluid">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h3>Editar dados</h3>
+                    <form class="devbook-form" id="form-update-user">
+                        <div class="form-group">
+                            <label for="name">Nome</label>
+                            <input type="text" name="name" id="name" placeholder="Digite seu nome" 
+                                required="required" value="{{ .Name }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="nick">Nick</label>
+                            <input type="text" name="nick" id="nick" placeholder="Digite seu nick" 
+                                required="required" value="{{ .Nick }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mail</label>
+                            <input type="text" name="email" id="email" placeholder="Digite seu e-mail" 
+                                required="required" value="{{ .Email }}" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-info" id="btn-update-user">Atualizar</button>
+                    </form>
+                </div>
+            </div>
+        </div>    
+        
+        {{ template "footer" }}
+        {{ template "scripts" }}
+
+        <script src="/assets/js/update-user.js"></script>
+    </body>
+</html>

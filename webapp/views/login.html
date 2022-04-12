@@ -1,0 +1,29 @@
+<html lang="en">
+    <Head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DevBook - Login</title>
+
+        <link rel="stylesheet" type="text/css" href="/assets/css/login.css">
+    </Head>
+    <body>
+        <div class="container-login">
+            <form class="devbook-form" id="form-login">
+                <span>Seja bem vindo ao DevBook!</span>
+                <div>
+                    <input type="text" name="email" id="email" placeholder="Digite seu e-mail" required="required">
+                </div>
+                <div>
+                    <input type="password" name="password" id="password" placeholder="Digite a sua senha" required="required">
+                </div>
+                <a href="/create-user">Clique aqui para criar a sua conta!</a>
+                <button type="submit" class="btn-devbook">Entrar</button>
+            </form>
+        </div>    
+        
+        {{ template "footer" }}
+        {{ template "scripts" }}
+
+        <script src="/assets/js/login.js"></script>
+    </body>
+</html>

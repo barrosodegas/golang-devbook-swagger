@@ -1,0 +1,854 @@
+basePath: /
+definitions:
+  model.DataAuthentication:
+    properties:
+      id:
+        type: string
+      token:
+        type: string
+    type: object
+  model.Password:
+    properties:
+      current:
+        type: string
+      new:
+        type: string
+    type: object
+  model.Publication:
+    properties:
+      authorId:
+        type: integer
+      authorNick:
+        type: string
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      likes:
+        type: integer
+      title:
+        type: string
+    type: object
+  model.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      nick:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:5000
+info:
+  contact: {}
+  description: API responsible for CRUD and DevBook social network authentication.
+  title: DevBook API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Generates the system access token and return an object containing the system access token and the user ID.
+        Use the token generated at login to run the other API endpoints through Authorization Bearer.
+      parameters:
+      - description: Enter only the user's email and password.
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/model.DataAuthentication'
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "422":
+          description: 'Error: Unprocessable Entity'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: Generates the system access token.
+      tags:
+      - login
+  /publications:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        ListMyAndFollowPublications lists the publications of the logged in user and the publications they follow
+        and returns a list containing the posts of the logged in user and the posts of whom he follows or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/model.Publication'
+            type: array
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: ListMyAndFollowPublications lists the publications of the logged in
+        user and the publications they follow.
+      tags:
+      - publications
+    post:
+      consumes:
+      - application/json
+      description: CreatePublication create a publication and returns the publication
+        created or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Enter only the title and content of the publication.
+        in: body
+        name: publication
+        required: true
+        schema:
+          $ref: '#/definitions/model.Publication'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            $ref: '#/definitions/model.Publication'
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "422":
+          description: 'Error: Unprocessable Entity'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: CreatePublication create a publication.
+      tags:
+      - publications
+  /publications/{publicationId}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        DeletePublicationById deletes a publication by the given ID
+        and returns an error if unable to delete the publication.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Publication ID
+        in: path
+        name: publicationId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: DeletePublicationById deletes a publication by the given ID.
+      tags:
+      - publications
+    get:
+      consumes:
+      - application/json
+      description: |-
+        FindPublicationById search for a publication by the given ID
+        and returns the publication or an error if unable to create the publication.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Publication ID
+        in: path
+        name: publicationId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/model.Publication'
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "404":
+          description: 'Error: Not Found'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: FindPublicationById search for a publication by the given ID.
+      tags:
+      - publications
+    put:
+      consumes:
+      - application/json
+      description: |-
+        UpdatePublicationById updates a publication by the given ID
+        and returns an error if unable to update the publication.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Publication ID
+        in: path
+        name: publicationId
+        required: true
+        type: integer
+      - description: Enter only the title and content of the publication.
+        in: body
+        name: publication
+        required: true
+        schema:
+          $ref: '#/definitions/model.Publication'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "422":
+          description: 'Error: Unprocessable Entity'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: UpdatePublicationById updates a publication by the given ID..
+      tags:
+      - publications
+  /publications/{publicationId}/like:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        LikePublicationById likes a publication by the given ID
+        and returns an error if unable to like the publication.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Publication ID
+        in: path
+        name: publicationId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: LikePublicationById likes a publication by the given ID.
+      tags:
+      - publications
+  /publications/{publicationId}/unlike:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        UnlikePublicationById unlike a publication by the given ID
+        and returns an error if unable to unlike the publication.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Publication ID
+        in: path
+        name: publicationId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: UnlikePublicationById unlike a publication by the given ID.
+      tags:
+      - publications
+  /publications/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        ListPublicationsByUserId lists a user's publications
+        and returns a list of publications or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: ListPublicationsByUserId lists a user's publications.
+      tags:
+      - publications
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: ListUsersByFilter list users by a filter and returns the list of
+        users found or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Name or nick of user.
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: ListUsersByFilter list users by a filter.
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: CreateUser create a user and return the user created.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: ' '
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "422":
+          description: 'Error: Unprocessable Entity'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: CreateUser create a user.
+      tags:
+      - users
+  /users/{userId}:
+    delete:
+      consumes:
+      - application/json
+      description: DeleteUserById delete a user by the given ID and returns an error
+        if unable to delete the user.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: DeleteUserById delete a user by the given ID.
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: FindUserById search for a user by the given ID and return a user
+        or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "404":
+          description: 'Error: Not Found'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: FindUserById search for a user by the given ID.
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: UpdateUserById updates a user by the given ID and returns an error
+        if unable to update the user.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "422":
+          description: 'Error: Unprocessable Entity'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: UpdateUserById updates a user by the given ID.
+      tags:
+      - users
+  /users/{userId}/follow:
+    post:
+      consumes:
+      - application/json
+      description: FollowUserById follows a user by the given ID and returns an error
+        if unable to follow the user.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: FollowUserById follows a user by the given ID.
+      tags:
+      - users
+  /users/{userId}/followers:
+    get:
+      consumes:
+      - application/json
+      description: ListFollowersByFollowedUserId lists a user's followers and returns
+        a list of followers or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: ListFollowersByFollowedUserId lists a user's followers.
+      tags:
+      - users
+  /users/{userId}/list-followed:
+    get:
+      consumes:
+      - application/json
+      description: ListFollowedByFollowerId lists people the user follows and returns
+        a list of people the user follows or an error.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: ListFollowedByFollowerId lists people the user follows.
+      tags:
+      - users
+  /users/{userId}/unfollow:
+    post:
+      consumes:
+      - application/json
+      description: UnfollowUserById unfollow a user by the given ID and returns an
+        error if unable to unfollow the user.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: UnfollowUserById unfollow a user by the given ID.
+      tags:
+      - users
+  /users/{userId}/update-password:
+    post:
+      consumes:
+      - application/json
+      description: UpdatePasswordByUserId updates the user's password by the given
+        ID and returns an error if unable to update the password.
+      parameters:
+      - description: 'Enter the content: Bearer and your access token.'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID.
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: The current and new password of user.
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.Password'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success with no content
+        "400":
+          description: 'Error: Bad Request'
+          schema:
+            type: string
+        "401":
+          description: 'Error: Unauthorized'
+          schema:
+            type: string
+        "403":
+          description: 'Error: Forbidden'
+          schema:
+            type: string
+        "422":
+          description: 'Error: Unprocessable Entity'
+          schema:
+            type: string
+        "500":
+          description: 'Error: Internal Server'
+          schema:
+            type: string
+      summary: UpdatePasswordByUserId updates the user's password by the given ID.
+      tags:
+      - users
+swagger: "2.0"

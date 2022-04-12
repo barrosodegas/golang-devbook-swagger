@@ -1,0 +1,24 @@
+
+{{ define "user-edit" }}
+    <a href="/users/{{ . }}/edit" style="text-decoration: none;">
+        <i class="fa-solid fa-pen-to-square"></i>
+    </a>
+{{ end }}
+
+{{ define "user-delete" }}
+    <i class="fa-solid fa-trash-can text-danger delete-user" style="cursor: pointer;"></i>
+{{ end }}
+
+{{ define "user-with-permissions" }}
+    <p class="card-text" data-user-id="{{ .ID }}">
+        {{ .Name }} - <a href="/users/{{ .ID }}">{{ .Nick }}</a> - Membro desde: {{ .CreatedAt.Format "02/01/2006" }}
+        {{ template "user-edit" .ID }}
+        {{ template "user-delete" .ID }}
+    </p>
+{{ end }}
+
+{{ define "user-without-permissions" }}
+    <p class="card-text" data-user-id="{{ .ID }}">
+        {{ .Name }} - <a href="/users/{{ .ID }}">{{ .Nick }}</a> - Membro desde: {{ .CreatedAt.Format "02/01/2006" }}
+    </p>
+{{ end }}

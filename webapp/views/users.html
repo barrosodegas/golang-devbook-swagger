@@ -1,0 +1,32 @@
+<html lang="en">
+    <Head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DevBook - Usuários</title>
+
+        <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css">
+    </Head>
+    <body>
+        {{ template "header" }}
+
+        <div class="container-fluid">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Usuários encontrados</h5>
+                            {{ range . }}
+                                {{ template "user-without-permissions" . }}
+                            {{ else }}    
+                                <p class="card-text">Nenhum usuário encontrado</p>
+                            {{ end }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{ template "footer" }}
+        {{ template "scripts" }}
+    </body>
+</html>
