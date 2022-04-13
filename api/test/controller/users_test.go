@@ -609,3 +609,122 @@ func TestListFollowedByFollowerIdWithUnauthorizedtError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
+
+// TestUpdatePasswordByUserIdWithSuccess It guarantees that it will update the user's password when the ID is valid
+// and the request is authenticated.
+func TestUpdatePasswordByUserIdWithSuccess(t *testing.T) {
+
+	userId := 2
+	body := []byte(`{
+		"current": "alb1234",
+		"new": "test"
+	}`)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+}
+
+// TestUpdatePasswordByUserIdWithBadRequestError
+// It guarantees that it will not update the user's password when the ID is invalid.
+func TestUpdatePasswordByUserIdWithBadRequestError(t *testing.T) {
+
+	userId := "d"
+	body := []byte(`{
+		"current": "alb1234",
+		"new": "test"
+	}`)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%s/update-password", userId), bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUpdatePasswordByUserIdWithUnauthorizedError
+// It guarantees that it will not update the user's password when the ID is valid and the request is not authenticated.
+func TestUpdatePasswordByUserIdWithUnauthorizedError(t *testing.T) {
+
+	userId := 2
+	body := []byte(`{
+		"current": "alb1234",
+		"new": "test"
+	}`)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestUpdatePasswordByUserIdWithBadRequestErrorWhenIsInvalidBody
+// It guarantees that it will not update the user's password when the ID is valid and the request
+// is authenticated but the request body is invalid.
+func TestUpdatePasswordByUserIdWithBadRequestErrorWhenIsInvalidBody(t *testing.T) {
+
+	userId := 2
+	body := []byte(``)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUpdatePasswordByUserIdWithForbiddenError
+// It guarantees that it will not update the user's password when the ID is valid, the request is authenticated
+// but the logged-in user is different from the user informed in the request.
+func TestUpdatePasswordByUserIdWithForbiddenError(t *testing.T) {
+
+	userId := 3
+	body := []byte(`{
+		"current": "alb1234",
+		"new": "test"
+	}`)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+}
+
+// TestUpdatePasswordByUserIdWithBadRequestErrorWhenNewAndCurrentPasswordIsEguals
+// It guarantees that it will not update the user's password when the ID is valid, the request is authenticated
+// but the current password and the new password are identical.
+func TestUpdatePasswordByUserIdWithBadRequestErrorWhenNewAndCurrentPasswordIsEguals(t *testing.T) {
+
+	userId := 2
+	body := []byte(`{
+		"current": "alb1234",
+		"new": "alb1234"
+	}`)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUpdatePasswordByUserIdWithUnauthorizedErrorWhenCurrentPasswordIsInvalid
+// It guarantees that it will not update the user's password when the ID is valid, the request
+// is authenticated but the current password is invalid.
+func TestUpdatePasswordByUserIdWithUnauthorizedErrorWhenCurrentPasswordIsInvalid(t *testing.T) {
+
+	userId := 2
+	body := []byte(`{
+		"current": "alb1",
+		"new": "test"
+	}`)
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}

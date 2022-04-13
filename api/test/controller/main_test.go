@@ -8,6 +8,7 @@ import (
 	"api/test/scripts"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -18,6 +19,7 @@ import (
 // r Load API routes
 var r = router.Generate()
 var userToken string
+var userTokenToUpdate string
 
 // TestMain load environment variables, database and run package tests
 func TestMain(m *testing.M) {
@@ -38,7 +40,8 @@ func TestMain(m *testing.M) {
 
 	scripts.Run(db)
 
-	userToken = getUserToken()
+	userToken = GetUserToken("user1@gmail.com", "alb1234")
+	userTokenToUpdate = GetUserToken("user2@gmail.com", "alb1234")
 
 	code := m.Run()
 
@@ -47,9 +50,9 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func getUserToken() string {
+func GetUserToken(email, password string) string {
 
-	body := []byte(`{"email": "user1@gmail.com", "password": "alb1234"}`)
+	body := []byte(fmt.Sprintf(`{"email": "%s", "password": "%s"}`, email, password))
 
 	req, error := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
 	if error != nil {
