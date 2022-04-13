@@ -304,3 +304,65 @@ func TestUpdateUserByIdWithForbiddenError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusForbidden, responseUpdate.Code)
 }
+
+// TestDeleteUserByIdWithSuccess
+// Ensures the user will be deleted when the user ID is valid and the user is authenticated.
+func TestDeleteUserByIdWithSuccess(t *testing.T) {
+
+	userId := 1
+
+	// Delete user
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+
+	// Find user after be delete and not found user.
+	req, _ = http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusNotFound, response.Code)
+}
+
+// TestDeleteUserByIdWithBadRequestError
+// Ensures the user will not be deleted when the user ID is invalid.
+func TestDeleteUserByIdWithBadRequestError(t *testing.T) {
+
+	userId := "d"
+
+	// Find user after be try deleted
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%s", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestDeleteUserByIdWithUnauthorizedError
+// Ensures that the user will not be deleted when the user ID is valid and the request is not authenticated.
+func TestDeleteUserByIdWithUnauthorizedError(t *testing.T) {
+
+	userId := 1
+
+	// Try delete user
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%d", userId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestDeleteUserByIdWithForbiddenError
+// It guarantees that the user will not be deleted when the user ID is valid and different from the logged in user ID.
+func TestDeleteUserByIdWithForbiddenError(t *testing.T) {
+
+	userId := 2
+
+	// Try delete user
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+}
