@@ -17,6 +17,7 @@ import (
 
 var r = router.Generate()
 
+// TestMain load environment variables, database and run package tests
 func TestMain(m *testing.M) {
 
 	if error := os.Setenv("ENV_PATH", "../.env-test"); error != nil {
@@ -42,6 +43,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// executeRequest Executes the request to be tested and returns a response.
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
@@ -49,13 +51,15 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	return rr
 }
 
+// checkResponseCode Checks that the endpoint responded as expected.
 func checkResponseCode(t *testing.T, expected, actual int) {
 	if actual != expected {
 		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
 	}
 }
 
-func TestLoginWithSucces(t *testing.T) {
+// TestLoginWithSuccess Ensures that the login is successful when the user enters a correct email and password.
+func TestLoginWithSuccess(t *testing.T) {
 
 	body := []byte(`{"email": "user1@gmail.com", "password": "alb1234"}`)
 
@@ -70,6 +74,7 @@ func TestLoginWithSucces(t *testing.T) {
 	}
 }
 
+// TestLoginWithBadRequestError Ensures login will not be successful when user submits invalid json.
 func TestLoginWithBadRequestError(t *testing.T) {
 
 	body := []byte(``)
@@ -80,6 +85,7 @@ func TestLoginWithBadRequestError(t *testing.T) {
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
 
+// TestLoginWithUnauthorizedError It guarantees that the login will not be successful when the user does not provide a correct email and password.
 func TestLoginWithUnauthorizedError(t *testing.T) {
 
 	body := []byte(`{"email": "user1@gmail.com", "password": "alb12"}`)
