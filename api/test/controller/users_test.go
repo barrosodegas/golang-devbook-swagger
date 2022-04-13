@@ -540,3 +540,72 @@ func TestListFollowersByFollowedUserIdWithUnauthorizedtError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
+
+// TestListFollowedByFollowerIdWithSuccess
+// Ensures that a list of follows will be returned for the given user ID when the user has follows.
+func TestListFollowedByFollowerIdWithSuccess(t *testing.T) {
+
+	userId := 3
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var follows []model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &follows); error != nil {
+		t.Errorf("Expected a follows list. Got %s", response.Body)
+	}
+
+	if len(follows) == 0 {
+		t.Errorf("Expected a follows list. Got a empty list")
+	}
+}
+
+// TestListFollowedByFollowerIdWithSuccessWheUserHasNoFollows
+// Ensures that an empty list of follows will be returned for the given user ID when the user has no follows.
+func TestListFollowedByFollowerIdWithSuccessWheUserHasNoFollows(t *testing.T) {
+
+	userId := 2
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var follows []model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &follows); error != nil {
+		t.Errorf("Expected a follows list. Got %s", response.Body)
+	}
+
+	if len(follows) != 0 {
+		t.Errorf("Expected a follows list. Got a empty list")
+	}
+}
+
+// TestListFollowedByFollowerIdWithBadRequestError
+// It guarantees that it will not return a list of follows when the user ID entered is invalid.
+func TestListFollowedByFollowerIdWithBadRequestError(t *testing.T) {
+
+	userId := "d"
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%s/list-followed", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestListFollowedByFollowerIdWithUnauthorizedtError
+// It guarantees that it will return a list of users that the informed user follows when the request is authenticated.
+func TestListFollowedByFollowerIdWithUnauthorizedtError(t *testing.T) {
+
+	userId := 3
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
