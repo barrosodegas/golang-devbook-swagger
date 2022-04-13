@@ -18,8 +18,13 @@ var (
 // Load loads the system environment variables.
 func Load() {
 	var error error
+	var envFilePath = os.Getenv("ENV_PATH")
 
-	if error = godotenv.Load(); error != nil {
+	if envFilePath == "" {
+		envFilePath = ".env"
+	}
+
+	if error = godotenv.Load(envFilePath); error != nil {
 		log.Fatal(error)
 	}
 
