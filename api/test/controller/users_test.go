@@ -4,6 +4,7 @@ import (
 	"api/src/model"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -122,4 +123,63 @@ func TestListUsersByFilterWithUnauthorizedError(t *testing.T) {
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestFindUserByIdWithSuccess It guarantees that it will return the consulted user when a valid ID is informed.
+func TestFindUserByIdWithSuccess(t *testing.T) {
+
+	userId := 1
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var user model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &user); error != nil {
+		t.Errorf("Expected an User model. Got %s", response.Body)
+	}
+
+	if user.ID != uint64(userId) {
+		t.Errorf("Expected an User model with ID: 1. Got %d", user.ID)
+	}
+}
+
+// TestFindUserByIdWithBadRequestError
+// It guarantees that the queried user will not be returned when a valid ID is not provided.
+func TestFindUserByIdWithBadRequestError(t *testing.T) {
+
+	userId := "d"
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%s", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestFindUserByIdWithUnauthorizedError
+// It guarantees that it will not return the queried user when it is not an authenticated request.
+func TestFindUserByIdWithUnauthorizedError(t *testing.T) {
+
+	userId := 1
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestFindUserByIdWithNotFoundError
+// It guarantees that it will not return the queried user when the user does not exist.
+func TestFindUserByIdWithNotFoundError(t *testing.T) {
+
+	userId := 0
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
