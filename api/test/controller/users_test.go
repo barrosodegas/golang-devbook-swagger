@@ -418,3 +418,55 @@ func TestFollowUserByIdWithForbiddenError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
+
+// TestUnfollowUserByIdWithSuccess
+// Ensures that the logged in user starts unfollowing the user informed in the request.
+func TestUnfollowUserByIdWithSuccess(t *testing.T) {
+
+	userId := 4
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+}
+
+// TestUnfollowUserByIdWithUnauthorizedError
+// Ensures that the logged in user does not start unfollowing the user informed in the request when the request is not authenticated.
+func TestUnfollowUserByIdWithUnauthorizedError(t *testing.T) {
+
+	userId := 4
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestUnfollowUserByIdWithBadRequestError
+// It ensures that the logged in user does not start unfollowing the user informed in the request when the user ID is invalid.
+func TestUnfollowUserByIdWithBadRequestError(t *testing.T) {
+
+	userId := "d"
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%s/unfollow", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUnfollowUserByIdWithForbiddenError
+// It ensures that the logged-in user does not start unfollowing the user informed in the request when the
+// user ID equals the logged-in user ID.
+func TestUnfollowUserByIdWithForbiddenError(t *testing.T) {
+
+	userId := 1
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+}
