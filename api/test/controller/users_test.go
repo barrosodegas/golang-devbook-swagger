@@ -470,3 +470,73 @@ func TestUnfollowUserByIdWithForbiddenError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
+
+// TestListFollowersByFollowedUserIdWithSuccess
+// Ensures that a list of followers will be returned for the given user ID when the user has followers.
+func TestListFollowersByFollowedUserIdWithSuccess(t *testing.T) {
+
+	userId := 2
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/followers", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var followers []model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &followers); error != nil {
+		t.Errorf("Expected a followers list. Got %s", response.Body)
+	}
+
+	if len(followers) == 0 {
+		t.Errorf("Expected a followers list. Got a empty list")
+	}
+}
+
+// TestListFollowersByFollowedUserIdWithSuccessWheUserHasNoFollowers
+// Ensures that an empty list of followers will be returned for the given user ID when the user has no followers.
+func TestListFollowersByFollowedUserIdWithSuccessWheUserHasNoFollowers(t *testing.T) {
+
+	userId := 3
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/followers", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var followers []model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &followers); error != nil {
+		t.Errorf("Expected a followers list. Got %s", response.Body)
+	}
+
+	if len(followers) != 0 {
+		t.Errorf("Expected a followers list. Got a empty list")
+	}
+}
+
+// TestListFollowersByFollowedUserIdWithBadRequestError
+// It guarantees that it will not return a list of followers when the user ID entered is invalid.
+func TestListFollowersByFollowedUserIdWithBadRequestError(t *testing.T) {
+
+	userId := "d"
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%s/followers", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestListFollowersByFollowedUserIdWithUnauthorizedtError
+// It guarantees that it will not return a list of followers when the user ID provided
+// is valid but the request is not authenticated.
+func TestListFollowersByFollowedUserIdWithUnauthorizedtError(t *testing.T) {
+
+	userId := 2
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/followers", userId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
