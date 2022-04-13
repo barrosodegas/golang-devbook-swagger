@@ -3,8 +3,11 @@ package controller
 import (
 	"api/src/config"
 	"api/src/database"
+	"api/src/model"
 	"api/src/router"
 	"api/test/scripts"
+	"bytes"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +17,7 @@ import (
 
 // r Load API routes
 var r = router.Generate()
+var userToken string
 
 // TestMain load environment variables, database and run package tests
 func TestMain(m *testing.M) {
@@ -34,11 +38,30 @@ func TestMain(m *testing.M) {
 
 	scripts.Run(db)
 
+	userToken = getUserToken()
+
 	code := m.Run()
 
 	scripts.Run(db)
 
 	os.Exit(code)
+}
+
+func getUserToken() string {
+
+	body := []byte(`{"email": "user1@gmail.com", "password": "alb1234"}`)
+
+	req, error := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	if error != nil {
+		log.Fatal(error)
+	}
+	response := executeRequest(req)
+
+	var dataAuthentication model.DataAuthentication
+	if error := json.Unmarshal(response.Body.Bytes(), &dataAuthentication); error != nil {
+		log.Fatal(error)
+	}
+	return dataAuthentication.Token
 }
 
 // executeRequest Executes the request to be tested and returns a response.

@@ -20,7 +20,7 @@ func TestLoginWithSuccess(t *testing.T) {
 
 	var dataAuthentication model.DataAuthentication
 	if error := json.Unmarshal(response.Body.Bytes(), &dataAuthentication); error != nil {
-		t.Errorf("Expected an DataAuthentication model. Got %s", body)
+		t.Errorf("Expected an DataAuthentication model. Got %s", response.Body)
 	}
 }
 
