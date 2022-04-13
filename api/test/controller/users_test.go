@@ -183,3 +183,124 @@ func TestFindUserByIdWithNotFoundError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
+
+// TestUpdateUserByIdWithSuccess
+// Ensures that the user will be updated correctly when a valid User ID is entered and the data for the update is valid.
+func TestUpdateUserByIdWithSuccess(t *testing.T) {
+
+	userId := 1
+
+	// Find user after be updated
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	var user model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &user); error != nil {
+		t.Errorf("Expected an User model. Got %s", response.Body)
+	}
+
+	// Update user
+	body := []byte(`{
+		"name": "User Test - 1",
+		"nick": "user@test-1",
+		"email": "user.test1@gmail.com"
+	}`)
+
+	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
+	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
+	responseUpdate := executeRequest(reqUpdate)
+
+	checkResponseCode(t, http.StatusNoContent, responseUpdate.Code)
+
+	// Find user after be updated
+	response = executeRequest(req)
+
+	var updatedUser model.User
+	if error := json.Unmarshal(response.Body.Bytes(), &updatedUser); error != nil {
+		t.Errorf("Expected an updated User model. Got %s", response.Body)
+	}
+
+	if updatedUser.Name != "User Test - 1" && updatedUser.Name == user.Name {
+		t.Errorf("Expected an updated User model with name: User Test - 1. Got %s", updatedUser.Name)
+	}
+
+	if updatedUser.Nick != "user@test-1" && updatedUser.Nick == user.Nick {
+
+		t.Errorf("Expected an updated User model with nick: user@test-1. Got %s", updatedUser.Nick)
+	}
+	if updatedUser.Email != "user.test1@gmail.com" && updatedUser.Email == user.Email {
+		t.Errorf("Expected an updated User model with name: user.test1@gmail.com. Got %s", updatedUser.Email)
+	}
+}
+
+// TestUpdateUserByIdWithBadRequestErrorWhenUserIdIsInvalid
+// It guarantees that the user will not be updated when a valid User ID is not provided.
+func TestUpdateUserByIdWithBadRequestErrorWhenUserIdIsInvalid(t *testing.T) {
+
+	userId := "d"
+
+	body := []byte(`{
+		"name": "User Test - 1",
+		"nick": "user@test-1",
+		"email": "user.test1@gmail.com"
+	}`)
+
+	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%s", userId), bytes.NewBuffer(body))
+	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
+	responseUpdate := executeRequest(reqUpdate)
+
+	checkResponseCode(t, http.StatusBadRequest, responseUpdate.Code)
+}
+
+// TestUpdateUserByIdWithBadRequestErrorWhenBodyDataIsInvalid
+// It guarantees that the user will not be updated when a valid request body is not informed.
+func TestUpdateUserByIdWithBadRequestErrorWhenBodyDataIsInvalid(t *testing.T) {
+
+	userId := 1
+
+	body := []byte(``)
+
+	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
+	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
+	responseUpdate := executeRequest(reqUpdate)
+
+	checkResponseCode(t, http.StatusBadRequest, responseUpdate.Code)
+}
+
+// TestUpdateUserByIdWithUnauthorizedError
+// It guarantees that the user will not be updated when the request is not authenticated.
+func TestUpdateUserByIdWithUnauthorizedError(t *testing.T) {
+
+	userId := 1
+
+	body := []byte(`{
+		"name": "User Test - 1",
+		"nick": "user@test-1",
+		"email": "user.test1@gmail.com"
+	}`)
+
+	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
+	responseUpdate := executeRequest(reqUpdate)
+
+	checkResponseCode(t, http.StatusUnauthorized, responseUpdate.Code)
+}
+
+// TestUpdateUserByIdWithForbiddenError
+// It guarantees that the user will not be updated when the user ID in the request is different from the logged in user ID.
+func TestUpdateUserByIdWithForbiddenError(t *testing.T) {
+
+	userId := 2
+
+	body := []byte(`{
+		"name": "User Test - 1",
+		"nick": "user@test-1",
+		"email": "user.test1@gmail.com"
+	}`)
+
+	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
+	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
+	responseUpdate := executeRequest(reqUpdate)
+
+	checkResponseCode(t, http.StatusForbidden, responseUpdate.Code)
+}
