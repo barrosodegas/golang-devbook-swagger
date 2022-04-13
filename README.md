@@ -31,3 +31,6 @@
 ## Environment
 - Golang 1.18 or latest
 - [Go Swagger](https://github.com/swaggo/swag)
+
+## How to execute API tests
+- On api directory root execute: go test ./...
