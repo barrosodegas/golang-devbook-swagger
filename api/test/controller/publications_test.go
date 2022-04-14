@@ -547,3 +547,82 @@ func TestLikePublicationByIdWithBadRequestError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
+
+// TestLikePublicationByIdWithUnauthorizedError
+// It guarantees that the post will not be liked when the post id is valid and the request is not authenticated.
+func TestLikePublicationByIdWithUnauthorizedError(t *testing.T) {
+
+	var publicationId = 1
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%d/like", publicationId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestLikePublicationByIdWithSuccess
+// Ensures post will be liked when post id is valid and request is authenticated.
+func TestUnlikePublicationByIdWithSuccess(t *testing.T) {
+
+	var publicationId = 1
+
+	// Get publication before unlike.
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publicationBeforeUnlike model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publicationBeforeUnlike); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	// Unlike publication
+	req, _ = http.NewRequest("POST", fmt.Sprintf("/publications/%d/unlike", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+
+	// Get publication after unlike.
+	req, _ = http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publicationAfterUnlike model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publicationAfterUnlike); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	if publicationAfterUnlike.Likes >= publicationBeforeUnlike.Likes {
+		t.Errorf("Expected a after publication unlike is smaller than publication before unlike.")
+	}
+}
+
+// TestUnlikePublicationByIdWithUnauthorizedError
+// It guarantees that the post will not be unliked when the post id is valid and the request is not authenticated.
+func TestUnlikePublicationByIdWithUnauthorizedError(t *testing.T) {
+
+	var publicationId = 1
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%d/unlike", publicationId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestUnlikePublicationByIdWithBadRequestError
+// It guarantees that the post will not be unliked when the post id is invalid and the request is authenticated.
+func TestUnlikePublicationByIdWithBadRequestError(t *testing.T) {
+
+	var publicationId = "d"
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%s/unlike", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
