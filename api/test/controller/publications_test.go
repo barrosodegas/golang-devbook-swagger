@@ -368,3 +368,55 @@ func TestUpdatePublicationByIdWithForbiddenError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
+
+// TestUpdatePublicationByIdWithSuccess
+// It guarantees that a publication will be deleted when the id entered is valid, the request is
+// authenticated but the publication belongs to the user.
+func TestDeletePublicationByIdWithSuccess(t *testing.T) {
+
+	var publicationId = 4
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+}
+
+// TestDeletePublicationByIdWithUnauthorizedError
+// It guarantees that a publication will not be deleted when the given id is valid and the request is not authenticated.
+func TestDeletePublicationByIdWithUnauthorizedError(t *testing.T) {
+
+	var publicationId = 1
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestDeletePublicationByIdWithBadRequestError
+// It guarantees that a publication will not be deleted when the id entered is invalid and the request is authenticated.
+func TestDeletePublicationByIdWithBadRequestError(t *testing.T) {
+
+	var publicationId = "d"
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%s", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestDeletePublicationByIdWithForbiddenError
+// Ensures that a post will not be deleted when the post belongs to another user and the request is authenticated.
+func TestDeletePublicationByIdWithForbiddenError(t *testing.T) {
+
+	var publicationId = 2
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+}
