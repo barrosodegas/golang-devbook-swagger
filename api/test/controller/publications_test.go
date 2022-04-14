@@ -226,3 +226,145 @@ func TestFindPublicationByIdNotFoundError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
+
+// TestUpdatePublicationByIdWithSuccess
+// It guarantees that a publication will be updated when the given id is valid, the request
+// is authenticated and the request body is valid.
+func TestUpdatePublicationByIdWithSuccess(t *testing.T) {
+
+	var publicationId = 1
+
+	// Find publication after is updated.
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publicationOld model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publicationOld); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	// Update the publication
+	body := []byte(`{
+		"title": "Pub Test - 1",
+		"content": "Pub to test - 1..."
+	}`)
+
+	req, _ = http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+
+	// Find the updated publication.
+	req, _ = http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publicationUpdated model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publicationUpdated); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	if publicationUpdated.Content == publicationOld.Content {
+		t.Errorf("Expected a Publication is updated with Content: Pub to test - 1... . Got %s", publicationUpdated.Content)
+	}
+}
+
+// TestUpdatePublicationByIdWithUnauthorizedError
+// It guarantees that a publication will not be updated when the given id is valid and the request is not authenticated.
+func TestUpdatePublicationByIdWithUnauthorizedError(t *testing.T) {
+
+	var publicationId = 1
+
+	body := []byte(`{
+		"title": "Pub Test - 1",
+		"content": "Pub to test - 1..."
+	}`)
+
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestUpdatePublicationByIdWithBadRequestErrorWhenPublicationIdIsInvalid
+// It guarantees that a publication will not be updated when the id entered is invalid and the request is authenticated.
+func TestUpdatePublicationByIdWithBadRequestErrorWhenPublicationIdIsInvalid(t *testing.T) {
+
+	var publicationId = "d"
+
+	body := []byte(`{
+		"title": "Pub Test - 1",
+		"content": "Pub to test - 1..."
+	}`)
+
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%s", publicationId), bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUpdatePublicationByIdWithBadRequestErrorWhenBodyIsInvalid
+// It guarantees that a publication will not be updated when the given id is valid, the request
+// is authenticated and the request body is invalid.
+func TestUpdatePublicationByIdWithBadRequestErrorWhenBodyIsInvalid(t *testing.T) {
+
+	var publicationId = 1
+
+	body := []byte(``)
+
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUpdatePublicationByIdWithBadRequestErrorWhenFieldIsMandatory
+// It guarantees that a publication will not be updated when the given id is valid, the request is authenticated and
+// the request body does not have a mandatory field.
+func TestUpdatePublicationByIdWithBadRequestErrorWhenFieldIsMandatory(t *testing.T) {
+
+	var publicationId = 1
+
+	body := []byte(`{
+		"title": "Pub Test - 1"
+	}`)
+
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestUpdatePublicationByIdWithForbiddenError
+// It guarantees that a publication will not be updated when the id entered is valid, the request
+// is authenticated but the publication belongs to another user.
+func TestUpdatePublicationByIdWithForbiddenError(t *testing.T) {
+
+	var publicationId = 2
+
+	body := []byte(`{
+		"title": "Pub Test - 1",
+		"content": "Pub to test - 1..."
+	}`)
+
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+}
