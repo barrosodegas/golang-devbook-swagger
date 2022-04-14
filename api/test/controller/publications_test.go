@@ -492,3 +492,58 @@ func TestListPublicationsByUserIdWithBadRequestError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
+
+// TestLikePublicationByIdWithSuccess
+// Ensures post will be liked when post id is valid and request is authenticated.
+func TestLikePublicationByIdWithSuccess(t *testing.T) {
+
+	var publicationId = 1
+
+	// Get publication before like.
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publicationBeforeLike model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publicationBeforeLike); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	// Like publication
+	req, _ = http.NewRequest("POST", fmt.Sprintf("/publications/%d/like", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+
+	// Get publication after like.
+	req, _ = http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response = executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publicationAfterLike model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publicationAfterLike); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	if publicationAfterLike.Likes <= publicationBeforeLike.Likes {
+		t.Errorf("Expected a after publication like is greater than publication before like.")
+	}
+}
+
+// TestLikePublicationByIdWithBadRequestError
+// It guarantees that the post will not be liked when the post id is invalid and the request is authenticated.
+func TestLikePublicationByIdWithBadRequestError(t *testing.T) {
+
+	var publicationId = "d"
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%s/like", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
