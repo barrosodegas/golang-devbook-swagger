@@ -420,3 +420,25 @@ func TestDeletePublicationByIdWithForbiddenError(t *testing.T) {
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
+
+// TestListPublicationsByUserIdWithSuccess
+// It guarantees that the list of publications of the informed user will be returned.
+func TestListPublicationsByUserIdWithSuccess(t *testing.T) {
+
+	var userId = 1
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publications []model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publications); error != nil {
+		t.Errorf("Expected a publication list. Got %s", response.Body)
+	}
+
+	if len(publications) < 1 {
+		t.Errorf("Expected a Publication list. Got a empty list.")
+	}
+}

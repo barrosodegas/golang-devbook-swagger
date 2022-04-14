@@ -347,7 +347,7 @@ func DeletePublicationById(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string true "Enter the content: Bearer and your access token."
 // @Param userId        path   int    true "User ID"
 //
-// @Success 204 "Success with no content"
+// @Success 200 {array} model.Publication "Success"
 //
 // @Failure 400 {string} string "Error: Bad Request"
 // @Failure 401 {string} string "Error: Unauthorized"

@@ -214,8 +214,14 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "Success with no content"
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Publication"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Error: Bad Request",

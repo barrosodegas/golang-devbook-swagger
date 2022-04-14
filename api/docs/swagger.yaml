@@ -403,8 +403,12 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: Success with no content
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/model.Publication'
+            type: array
         "400":
           description: 'Error: Bad Request'
           schema:
