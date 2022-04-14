@@ -442,3 +442,53 @@ func TestListPublicationsByUserIdWithSuccess(t *testing.T) {
 		t.Errorf("Expected a Publication list. Got a empty list.")
 	}
 }
+
+// TestListPublicationsByUserIdWithEmptyListSuccessWhenUserHasNoPublications
+// It guarantees that the empty post list will be returned when the user has no publications.
+func TestListPublicationsByUserIdWithEmptyListSuccessWhenUserHasNoPublications(t *testing.T) {
+
+	// Get token of new user
+	token := GetUserToken("user.test2@gmail.com", "test2")
+
+	var userId = 4
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%d", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publications []model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publications); error != nil {
+		t.Errorf("Expected a empty publication list. Got %s", response.Body)
+	}
+
+	if len(publications) > 0 {
+		t.Errorf("Expected a empty Publication list. Got %q", publications)
+	}
+}
+
+// TestListPublicationsByUserIdWithUnauthorizedError
+// It guarantees that the list of publications will not be returned when the informed user is valid and the request is not authenticated.
+func TestListPublicationsByUserIdWithUnauthorizedError(t *testing.T) {
+
+	var userId = 1
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%d", userId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestListPublicationsByUserIdWithBadRequestError
+// It guarantees that the list of publications will not be returned when the user entered is invalid.
+func TestListPublicationsByUserIdWithBadRequestError(t *testing.T) {
+
+	var userId = "d"
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%s", userId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
