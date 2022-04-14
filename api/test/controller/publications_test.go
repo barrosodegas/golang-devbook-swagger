@@ -4,6 +4,7 @@ import (
 	"api/src/model"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -164,4 +165,64 @@ func TestListMyAndFollowPublicationsWithUnauthorizedError(t *testing.T) {
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestFindPublicationByIdSuccess
+// It guarantees that a publication will be returned when the request is authenticated and the user entered is valid.
+func TestFindPublicationByIdSuccess(t *testing.T) {
+
+	var publicationId = 1
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var publication model.Publication
+	if error := json.Unmarshal(response.Body.Bytes(), &publication); error != nil {
+		t.Errorf("Expected a publication. Got %s", response.Body)
+	}
+
+	if publication.ID == 0 {
+		t.Errorf("Expected a Publication with ID: 1. Got %d.", publication.ID)
+	}
+}
+
+// TestFindPublicationByIdBadRequestError
+// It guarantees that a publication will not be returned when the request is authenticated and the user entered is invalid.
+func TestFindPublicationByIdBadRequestError(t *testing.T) {
+
+	var publicationId = "d"
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%s", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+}
+
+// TestFindPublicationByIdUnauthorizedError
+// It guarantees that a post will not be returned when the request is not authenticated.
+func TestFindPublicationByIdUnauthorizedError(t *testing.T) {
+
+	var publicationId = 1
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+}
+
+// TestFindPublicationByIdNotFoundError
+// Guarantees that a post will not be returned when the request is authenticated and the reported post does not exist.
+func TestFindPublicationByIdNotFoundError(t *testing.T) {
+
+	var publicationId = 1000
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
+	req.Header.Set("Authorization", "Bearer "+userToken)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
