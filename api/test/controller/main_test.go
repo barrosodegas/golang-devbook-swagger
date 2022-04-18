@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -54,11 +55,7 @@ func GetUserToken(email, password string) string {
 
 	body := []byte(fmt.Sprintf(`{"email": "%s", "password": "%s"}`, email, password))
 
-	req, error := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
-	if error != nil {
-		log.Fatal(error)
-	}
-	response := executeRequest(req)
+	response := executeRequest("POST", "/login", "", body, true)
 
 	var dataAuthentication model.DataAuthentication
 	if error := json.Unmarshal(response.Body.Bytes(), &dataAuthentication); error != nil {
@@ -68,7 +65,26 @@ func GetUserToken(email, password string) string {
 }
 
 // executeRequest Executes the request to be tested and returns a response.
-func executeRequest(req *http.Request) *httptest.ResponseRecorder {
+func executeRequest(method, uri, token string, body []byte, hasContentTypeJson bool) *httptest.ResponseRecorder {
+
+	var requestBody io.Reader = nil
+	if body != nil {
+		requestBody = bytes.NewBuffer(body)
+	}
+
+	req, error := http.NewRequest(method, uri, requestBody)
+	if error != nil {
+		log.Fatal(error)
+	}
+
+	if hasContentTypeJson {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 

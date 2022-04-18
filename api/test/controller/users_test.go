@@ -2,7 +2,6 @@ package controller
 
 import (
 	"api/src/model"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -19,8 +18,7 @@ func TestCreateUserWithSuccess(t *testing.T) {
 		"password": "test"
 	}`)
 
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", "/users", "", body, true)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
 
@@ -39,8 +37,7 @@ func TestCreateUserWithBadRequestError(t *testing.T) {
 
 	body := []byte(``)
 
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", "/users", "", body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -51,10 +48,7 @@ func TestListUsersByFilterByNameWithSuccess(t *testing.T) {
 
 	userName := "User Test"
 
-	req, _ := http.NewRequest("GET", "/users?user="+userName, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", "/users?user="+userName, userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -74,10 +68,7 @@ func TestListUsersByFilterByNickWithSuccess(t *testing.T) {
 
 	userNick := "user@test"
 
-	req, _ := http.NewRequest("GET", "/users?user="+userNick, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", "/users?user="+userNick, userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -96,10 +87,7 @@ func TestListUsersByFilterByEmptyParamWithSuccess(t *testing.T) {
 
 	emptyParam := ""
 
-	req, _ := http.NewRequest("GET", "/users?user="+emptyParam, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", "/users?user="+emptyParam, userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -119,8 +107,7 @@ func TestListUsersByFilterWithUnauthorizedError(t *testing.T) {
 
 	userName := "User Test"
 
-	req, _ := http.NewRequest("GET", "/users?user="+userName, nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", "/users?user="+userName, "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -130,9 +117,7 @@ func TestFindUserByIdWithSuccess(t *testing.T) {
 
 	userId := 1
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -152,9 +137,7 @@ func TestFindUserByIdWithBadRequestError(t *testing.T) {
 
 	userId := "d"
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%s", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%s", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -165,8 +148,7 @@ func TestFindUserByIdWithUnauthorizedError(t *testing.T) {
 
 	userId := 1
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -177,9 +159,7 @@ func TestFindUserByIdWithNotFoundError(t *testing.T) {
 
 	userId := 0
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
@@ -191,9 +171,7 @@ func TestUpdateUserByIdWithSuccess(t *testing.T) {
 	userId := 1
 
 	// Find user after be updated
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	var user model.User
 	if error := json.Unmarshal(response.Body.Bytes(), &user); error != nil {
@@ -207,14 +185,12 @@ func TestUpdateUserByIdWithSuccess(t *testing.T) {
 		"email": "user.test1@gmail.com"
 	}`)
 
-	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
-	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
-	responseUpdate := executeRequest(reqUpdate)
+	responseUpdate := executeRequest("PUT", fmt.Sprintf("/users/%d", userId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusNoContent, responseUpdate.Code)
 
 	// Find user after be updated
-	response = executeRequest(req)
+	response = executeRequest("GET", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	var updatedUser model.User
 	if error := json.Unmarshal(response.Body.Bytes(), &updatedUser); error != nil {
@@ -246,9 +222,7 @@ func TestUpdateUserByIdWithBadRequestErrorWhenUserIdIsInvalid(t *testing.T) {
 		"email": "user.test1@gmail.com"
 	}`)
 
-	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%s", userId), bytes.NewBuffer(body))
-	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
-	responseUpdate := executeRequest(reqUpdate)
+	responseUpdate := executeRequest("PUT", fmt.Sprintf("/users/%s", userId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, responseUpdate.Code)
 }
@@ -261,9 +235,7 @@ func TestUpdateUserByIdWithBadRequestErrorWhenBodyDataIsInvalid(t *testing.T) {
 
 	body := []byte(``)
 
-	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
-	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
-	responseUpdate := executeRequest(reqUpdate)
+	responseUpdate := executeRequest("PUT", fmt.Sprintf("/users/%d", userId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, responseUpdate.Code)
 }
@@ -280,8 +252,7 @@ func TestUpdateUserByIdWithUnauthorizedError(t *testing.T) {
 		"email": "user.test1@gmail.com"
 	}`)
 
-	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
-	responseUpdate := executeRequest(reqUpdate)
+	responseUpdate := executeRequest("PUT", fmt.Sprintf("/users/%d", userId), "", body, true)
 
 	checkResponseCode(t, http.StatusUnauthorized, responseUpdate.Code)
 }
@@ -298,9 +269,7 @@ func TestUpdateUserByIdWithForbiddenError(t *testing.T) {
 		"email": "user.test1@gmail.com"
 	}`)
 
-	reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf("/users/%d", userId), bytes.NewBuffer(body))
-	reqUpdate.Header.Set("Authorization", "Bearer "+userToken)
-	responseUpdate := executeRequest(reqUpdate)
+	responseUpdate := executeRequest("PUT", fmt.Sprintf("/users/%d", userId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusForbidden, responseUpdate.Code)
 }
@@ -312,16 +281,12 @@ func TestDeleteUserByIdWithSuccess(t *testing.T) {
 	userId := 1
 
 	// Delete user
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 
 	// Find user after be delete and not found user.
-	req, _ = http.NewRequest("GET", fmt.Sprintf("/users/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("GET", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
@@ -333,9 +298,7 @@ func TestDeleteUserByIdWithBadRequestError(t *testing.T) {
 	userId := "d"
 
 	// Find user after be try deleted
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%s", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/users/%s", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -347,8 +310,7 @@ func TestDeleteUserByIdWithUnauthorizedError(t *testing.T) {
 	userId := 1
 
 	// Try delete user
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%d", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/users/%d", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -360,9 +322,7 @@ func TestDeleteUserByIdWithForbiddenError(t *testing.T) {
 	userId := 2
 
 	// Try delete user
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/users/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/users/%d", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
@@ -373,9 +333,7 @@ func TestFollowUserByIdWithSuccess(t *testing.T) {
 
 	userId := 4
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/follow", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/follow", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 }
@@ -386,8 +344,7 @@ func TestFollowUserByIdWithUnauthorizedError(t *testing.T) {
 
 	userId := 4
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/follow", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/follow", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -398,9 +355,7 @@ func TestFollowUserByIdWithBadRequestError(t *testing.T) {
 
 	userId := "d"
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%s/follow", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%s/follow", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -412,9 +367,7 @@ func TestFollowUserByIdWithForbiddenError(t *testing.T) {
 
 	userId := 1
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/follow", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/follow", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
@@ -425,9 +378,7 @@ func TestUnfollowUserByIdWithSuccess(t *testing.T) {
 
 	userId := 4
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 }
@@ -438,8 +389,7 @@ func TestUnfollowUserByIdWithUnauthorizedError(t *testing.T) {
 
 	userId := 4
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -450,9 +400,7 @@ func TestUnfollowUserByIdWithBadRequestError(t *testing.T) {
 
 	userId := "d"
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%s/unfollow", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%s/unfollow", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -464,9 +412,7 @@ func TestUnfollowUserByIdWithForbiddenError(t *testing.T) {
 
 	userId := 1
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/unfollow", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
@@ -477,9 +423,7 @@ func TestListFollowersByFollowedUserIdWithSuccess(t *testing.T) {
 
 	userId := 2
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/followers", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d/followers", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -499,9 +443,7 @@ func TestListFollowersByFollowedUserIdWithSuccessWheUserHasNoFollowers(t *testin
 
 	userId := 3
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/followers", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d/followers", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -521,9 +463,7 @@ func TestListFollowersByFollowedUserIdWithBadRequestError(t *testing.T) {
 
 	userId := "d"
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%s/followers", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%s/followers", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -535,8 +475,7 @@ func TestListFollowersByFollowedUserIdWithUnauthorizedtError(t *testing.T) {
 
 	userId := 2
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/followers", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d/followers", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -547,9 +486,7 @@ func TestListFollowedByFollowerIdWithSuccess(t *testing.T) {
 
 	userId := 3
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -569,9 +506,7 @@ func TestListFollowedByFollowerIdWithSuccessWheUserHasNoFollows(t *testing.T) {
 
 	userId := 2
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -591,9 +526,7 @@ func TestListFollowedByFollowerIdWithBadRequestError(t *testing.T) {
 
 	userId := "d"
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%s/list-followed", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%s/list-followed", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -604,8 +537,7 @@ func TestListFollowedByFollowerIdWithUnauthorizedtError(t *testing.T) {
 
 	userId := 3
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/users/%d/list-followed", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -620,9 +552,7 @@ func TestUpdatePasswordByUserIdWithSuccess(t *testing.T) {
 		"new": "test"
 	}`)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
-	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), userTokenToUpdate, body, true)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 }
@@ -637,9 +567,7 @@ func TestUpdatePasswordByUserIdWithBadRequestError(t *testing.T) {
 		"new": "test"
 	}`)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%s/update-password", userId), bytes.NewBuffer(body))
-	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%s/update-password", userId), userTokenToUpdate, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -654,8 +582,7 @@ func TestUpdatePasswordByUserIdWithUnauthorizedError(t *testing.T) {
 		"new": "test"
 	}`)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), "", body, true)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -668,9 +595,7 @@ func TestUpdatePasswordByUserIdWithBadRequestErrorWhenIsInvalidBody(t *testing.T
 	userId := 2
 	body := []byte(``)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
-	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), userTokenToUpdate, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -686,9 +611,7 @@ func TestUpdatePasswordByUserIdWithForbiddenError(t *testing.T) {
 		"new": "test"
 	}`)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
-	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), userTokenToUpdate, body, true)
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
@@ -704,9 +627,7 @@ func TestUpdatePasswordByUserIdWithBadRequestErrorWhenNewAndCurrentPasswordIsEgu
 		"new": "alb1234"
 	}`)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
-	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), userTokenToUpdate, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -722,9 +643,7 @@ func TestUpdatePasswordByUserIdWithUnauthorizedErrorWhenCurrentPasswordIsInvalid
 		"new": "test"
 	}`)
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), bytes.NewBuffer(body))
-	req.Header.Set("Authorization", "Bearer "+userTokenToUpdate)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/users/%d/update-password", userId), userTokenToUpdate, body, true)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }

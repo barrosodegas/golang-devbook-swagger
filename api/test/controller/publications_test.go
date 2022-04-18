@@ -2,7 +2,6 @@ package controller
 
 import (
 	"api/src/model"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -19,10 +18,7 @@ func TestCreatePublicationWithSuccess(t *testing.T) {
 		"content": "Pub to test - 1"
 	}`)
 
-	req, _ := http.NewRequest("POST", "/publications", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", "/publications", userToken, body, true)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
 
@@ -45,9 +41,7 @@ func TestCreatePublicationWithUnauthorizedError(t *testing.T) {
 		"content": "Pub to test - 1"
 	}`)
 
-	req, _ := http.NewRequest("POST", "/publications", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	response := executeRequest(req)
+	response := executeRequest("POST", "/publications", "", body, true)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -58,10 +52,7 @@ func TestCreatePublicationWithBadRequestErrorWhenIsInvalidJson(t *testing.T) {
 
 	body := []byte(``)
 
-	req, _ := http.NewRequest("POST", "/publications", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", "/publications", userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -75,10 +66,7 @@ func TestCreatePublicationWithBadRequestErrorWhenAFieldIsMandatory(t *testing.T)
 		"title": "Pub Test - 1"
 	}`)
 
-	req, _ := http.NewRequest("POST", "/publications", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", "/publications", userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -87,9 +75,7 @@ func TestCreatePublicationWithBadRequestErrorWhenAFieldIsMandatory(t *testing.T)
 // Ensures a list containing the publications of the logged in user and the publications of the users he follows.
 func TestListMyAndFollowPublicationsWithSuccess(t *testing.T) {
 
-	req, _ := http.NewRequest("GET", "/publications", nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", "/publications", userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -126,7 +112,7 @@ func TestListMyAndFollowPublicationsWithSuccess(t *testing.T) {
 // Guarantees that an empty list will be returned when the user has no publications.
 func TestListMyAndFollowPublicationsWithEmptyListSuccess(t *testing.T) {
 
-	// Create a new user withou publications.
+	// Create a new user without publications.
 	body := []byte(`{
 		"name": "User Test 2",
 		"nick": "user@test2",
@@ -134,16 +120,13 @@ func TestListMyAndFollowPublicationsWithEmptyListSuccess(t *testing.T) {
 		"password": "test2"
 	}`)
 
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", "/users", "", body, true)
 
 	// Get token of new user
 	token := GetUserToken("user.test2@gmail.com", "test2")
 
 	// Get publications
-	req, _ = http.NewRequest("GET", "/publications", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	response = executeRequest(req)
+	response = executeRequest("GET", "/publications", token, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -161,8 +144,7 @@ func TestListMyAndFollowPublicationsWithEmptyListSuccess(t *testing.T) {
 // It guarantees that it will not return the list of publications when the request is not authenticated.
 func TestListMyAndFollowPublicationsWithUnauthorizedError(t *testing.T) {
 
-	req, _ := http.NewRequest("GET", "/publications", nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", "/publications", "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -173,9 +155,7 @@ func TestFindPublicationByIdSuccess(t *testing.T) {
 
 	var publicationId = 1
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -195,9 +175,7 @@ func TestFindPublicationByIdBadRequestError(t *testing.T) {
 
 	var publicationId = "d"
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%s", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%s", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -208,8 +186,7 @@ func TestFindPublicationByIdUnauthorizedError(t *testing.T) {
 
 	var publicationId = 1
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -220,9 +197,7 @@ func TestFindPublicationByIdNotFoundError(t *testing.T) {
 
 	var publicationId = 1000
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
@@ -235,9 +210,7 @@ func TestUpdatePublicationByIdWithSuccess(t *testing.T) {
 	var publicationId = 1
 
 	// Find publication after is updated.
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -252,17 +225,12 @@ func TestUpdatePublicationByIdWithSuccess(t *testing.T) {
 		"content": "Pub to test - 1..."
 	}`)
 
-	req, _ = http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 
 	// Find the updated publication.
-	req, _ = http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -287,9 +255,7 @@ func TestUpdatePublicationByIdWithUnauthorizedError(t *testing.T) {
 		"content": "Pub to test - 1..."
 	}`)
 
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	response := executeRequest(req)
+	response := executeRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), "", body, true)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -305,10 +271,7 @@ func TestUpdatePublicationByIdWithBadRequestErrorWhenPublicationIdIsInvalid(t *t
 		"content": "Pub to test - 1..."
 	}`)
 
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%s", publicationId), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("PUT", fmt.Sprintf("/publications/%s", publicationId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -322,10 +285,7 @@ func TestUpdatePublicationByIdWithBadRequestErrorWhenBodyIsInvalid(t *testing.T)
 
 	body := []byte(``)
 
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -341,10 +301,7 @@ func TestUpdatePublicationByIdWithBadRequestErrorWhenFieldIsMandatory(t *testing
 		"title": "Pub Test - 1"
 	}`)
 
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -361,10 +318,7 @@ func TestUpdatePublicationByIdWithForbiddenError(t *testing.T) {
 		"content": "Pub to test - 1..."
 	}`)
 
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("PUT", fmt.Sprintf("/publications/%d", publicationId), userToken, body, true)
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
@@ -376,9 +330,7 @@ func TestDeletePublicationByIdWithSuccess(t *testing.T) {
 
 	var publicationId = 4
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 }
@@ -389,8 +341,7 @@ func TestDeletePublicationByIdWithUnauthorizedError(t *testing.T) {
 
 	var publicationId = 1
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), nil)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -401,9 +352,7 @@ func TestDeletePublicationByIdWithBadRequestError(t *testing.T) {
 
 	var publicationId = "d"
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%s", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/publications/%s", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -414,9 +363,7 @@ func TestDeletePublicationByIdWithForbiddenError(t *testing.T) {
 
 	var publicationId = 2
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("DELETE", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusForbidden, response.Code)
 }
@@ -427,9 +374,7 @@ func TestListPublicationsByUserIdWithSuccess(t *testing.T) {
 
 	var userId = 1
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/user/%d", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -452,9 +397,7 @@ func TestListPublicationsByUserIdWithEmptyListSuccessWhenUserHasNoPublications(t
 
 	var userId = 4
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%d", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/user/%d", userId), token, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -474,8 +417,7 @@ func TestListPublicationsByUserIdWithUnauthorizedError(t *testing.T) {
 
 	var userId = 1
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%d", userId), nil)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/user/%d", userId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -486,9 +428,7 @@ func TestListPublicationsByUserIdWithBadRequestError(t *testing.T) {
 
 	var userId = "d"
 
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/user/%s", userId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/user/%s", userId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -500,9 +440,7 @@ func TestLikePublicationByIdWithSuccess(t *testing.T) {
 	var publicationId = 1
 
 	// Get publication before like.
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -512,16 +450,12 @@ func TestLikePublicationByIdWithSuccess(t *testing.T) {
 	}
 
 	// Like publication
-	req, _ = http.NewRequest("POST", fmt.Sprintf("/publications/%d/like", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("POST", fmt.Sprintf("/publications/%d/like", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 
 	// Get publication after like.
-	req, _ = http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -541,9 +475,7 @@ func TestLikePublicationByIdWithBadRequestError(t *testing.T) {
 
 	var publicationId = "d"
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%s/like", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/publications/%s/like", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -554,8 +486,7 @@ func TestLikePublicationByIdWithUnauthorizedError(t *testing.T) {
 
 	var publicationId = 1
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%d/like", publicationId), nil)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/publications/%d/like", publicationId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -567,9 +498,7 @@ func TestUnlikePublicationByIdWithSuccess(t *testing.T) {
 	var publicationId = 1
 
 	// Get publication before unlike.
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -579,16 +508,12 @@ func TestUnlikePublicationByIdWithSuccess(t *testing.T) {
 	}
 
 	// Unlike publication
-	req, _ = http.NewRequest("POST", fmt.Sprintf("/publications/%d/unlike", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("POST", fmt.Sprintf("/publications/%d/unlike", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 
 	// Get publication after unlike.
-	req, _ = http.NewRequest("GET", fmt.Sprintf("/publications/%d", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response = executeRequest(req)
+	response = executeRequest("GET", fmt.Sprintf("/publications/%d", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -608,8 +533,7 @@ func TestUnlikePublicationByIdWithUnauthorizedError(t *testing.T) {
 
 	var publicationId = 1
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%d/unlike", publicationId), nil)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/publications/%d/unlike", publicationId), "", nil, false)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
@@ -620,9 +544,7 @@ func TestUnlikePublicationByIdWithBadRequestError(t *testing.T) {
 
 	var publicationId = "d"
 
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/publications/%s/unlike", publicationId), nil)
-	req.Header.Set("Authorization", "Bearer "+userToken)
-	response := executeRequest(req)
+	response := executeRequest("POST", fmt.Sprintf("/publications/%s/unlike", publicationId), userToken, nil, false)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }

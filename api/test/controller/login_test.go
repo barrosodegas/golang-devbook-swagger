@@ -2,7 +2,6 @@ package controller
 
 import (
 	"api/src/model"
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -13,8 +12,7 @@ func TestLoginWithSuccess(t *testing.T) {
 
 	body := []byte(`{"email": "user1@gmail.com", "password": "alb1234"}`)
 
-	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", "/login", "", body, true)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -29,8 +27,7 @@ func TestLoginWithBadRequestError(t *testing.T) {
 
 	body := []byte(``)
 
-	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", "/login", "", body, true)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 }
@@ -40,8 +37,7 @@ func TestLoginWithUnauthorizedError(t *testing.T) {
 
 	body := []byte(`{"email": "user1@gmail.com", "password": "alb12"}`)
 
-	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
-	response := executeRequest(req)
+	response := executeRequest("POST", "/login", "", body, true)
 
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 }
