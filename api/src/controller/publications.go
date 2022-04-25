@@ -79,7 +79,7 @@ func CreatePublication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusCreated, publication)
+	responses.Success(w, http.StatusCreated, publication)
 }
 
 // Publication godoc
@@ -124,7 +124,7 @@ func ListMyAndFollowPublications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, publications)
+	responses.Success(w, http.StatusOK, publications)
 }
 
 // Publication godoc
@@ -178,7 +178,7 @@ func FindPublicationById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, publication)
+	responses.Success(w, http.StatusOK, publication)
 }
 
 // Publication godoc
@@ -264,7 +264,7 @@ func UpdatePublicationById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // Publication godoc
@@ -330,7 +330,7 @@ func DeletePublicationById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // Publication godoc
@@ -381,7 +381,7 @@ func ListPublicationsByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, publications)
+	responses.Success(w, http.StatusOK, publications)
 }
 
 // Publication godoc
@@ -431,7 +431,7 @@ func LikePublicationById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // Publication godoc
@@ -481,5 +481,5 @@ func UnlikePublicationById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }

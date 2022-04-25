@@ -76,5 +76,5 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	userId := strconv.FormatUint(entity.ID, 10)
 
-	responses.JSON(w, http.StatusOK, model.DataAuthentication{ID: userId, Token: token})
+	responses.Success(w, http.StatusOK, model.DataAuthentication{ID: userId, Token: token})
 }

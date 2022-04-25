@@ -73,7 +73,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusCreated, user)
+	responses.Success(w, http.StatusCreated, user)
 }
 
 // User godoc
@@ -114,7 +114,7 @@ func ListUsersByFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, users)
+	responses.Success(w, http.StatusOK, users)
 }
 
 // User godoc
@@ -167,7 +167,7 @@ func FindUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, user)
+	responses.Success(w, http.StatusOK, user)
 }
 
 // User godoc
@@ -245,7 +245,7 @@ func UpdateUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // User godoc
@@ -303,7 +303,7 @@ func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // User godoc
@@ -361,7 +361,7 @@ func FollowUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // User godoc
@@ -419,7 +419,7 @@ func UnfollowUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
 
 // User godoc
@@ -467,7 +467,7 @@ func ListFollowersByFollowedUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, followers)
+	responses.Success(w, http.StatusOK, followers)
 }
 
 // User godoc
@@ -515,7 +515,7 @@ func ListFollowedByFollowerId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, followedList)
+	responses.Success(w, http.StatusOK, followedList)
 }
 
 // User godoc
@@ -610,5 +610,5 @@ func UpdatePasswordByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusNoContent, nil)
+	responses.Success(w, http.StatusNoContent, nil)
 }
